@@ -1,0 +1,26 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thomas.ruch/p7-backend.git"
+  },
+  "author": "Thomas Ruch",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/thomas.ruch/p7-backend/issues"
+  },
+  "homepage": "https://github.com/thomas.ruch/p7-backend#readme",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.9.2",
+    "mongoose-unique-validator": "^4.0.1",
+    "multer": "^1.4.5-lts.1"
+  }
+}
