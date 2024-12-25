@@ -2,13 +2,14 @@ const express = require("express");
 const router = express.Router();
 
 const auth = require("../middlewares/auth");
+const multer = require("../middlewares/multer-config");
 
 const libraryCtrl = require("../controllers/library");
 
-router.get("/", auth, libraryCtrl.getAllBooks);
-router.post("/", auth, libraryCtrl.createBook);
-router.get("/:id", auth, libraryCtrl.getOneBook);
-router.put("/:id", auth, libraryCtrl.modifyBook);
+router.get("/", libraryCtrl.getAllBooks);
+router.post("/", auth, multer, libraryCtrl.createBook);
+router.get("/:id", libraryCtrl.getOneBook);
+router.put("/:id", auth, multer, libraryCtrl.modifyBook);
 router.delete("/:id", auth, libraryCtrl.deleteBook);
 
 module.exports = router;

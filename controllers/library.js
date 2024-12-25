@@ -1,9 +1,16 @@
 const Book = require("../models/Book");
-// const fs = require("fs");
+const fs = require("fs");
 
 exports.createBook = (req, res, next) => {
+  const bookObject = JSON.parse(req.body.book);
+  delete bookObject._userId;
+  delete bookObject._id;
   const book = new Book({
-    ...req.body,
+    ...bookObject,
+    userId: req.auth.userId,
+    imageUrl: `${req.protocol}://${req.get("host")}/images/${
+      req.file.filename
+    }`,
   });
 
   book
@@ -15,20 +22,50 @@ exports.createBook = (req, res, next) => {
 };
 
 exports.modifyBook = (req, res, next) => {
-  const book = new Book({
-    ...req.body,
-  });
+  const bookObject = req.file
+    ? {
+        ...JSON.parse(req.body.book),
+        imageUrl: `${req.protocol}://${req.get("host")}/images/${
+          req.file.filename
+        }`,
+      }
+    : { ...req.body };
 
-  Book.updateOne({ _id: req.params.id }, book)
-    .then(() => res.status(201).json({ message: "Livre mis à jour !" }))
+  delete bookObject._userId;
+
+  Book.findOne({ _id: req.params.id })
+    .then((book) => {
+      if (book.userId != req.auth.userId) {
+        res.status(401).json({ message: "Non autorisé" });
+      } else {
+        Book.updateOne(
+          { _id: req.params.id },
+          { ...bookObject, _id: req.params.id }
+        )
+
+          .then(() => res.status(200).json({ message: "Objet modifié !" }))
+          .catch((error) => res.status(401).json({ error }));
+      }
+    })
     .catch((error) => res.status(400).json({ error }));
 };
 
 exports.deleteBook = (req, res, next) => {
-  Book.deleteOne({ _id: req.params.id })
-    .then(() => res.status(200).json({ message: "Livre supprimé !" }))
+  Book.findOne({ _id: req.params.id })
+    .then((book) => {
+      if (book.userId != req.auth.userId) {
+        res.status(401).json({ message: "Non autorisé" });
+      } else {
+        const filename = book.imageUrl.split("/images/")[1];
+        fs.unlink(`images/${filename}`, () => {
+          Book.deleteOne({ _id: req.params.id })
+            .then(() => res.status(200).json({ message: "Objet supprimé !" }))
+            .catch((error) => res.status(401).json({ error }));
+        });
+      }
+    })
     .catch((error) => {
-      res.status(400).json({ error });
+      res.status(500).json({ error });
     });
 };
 

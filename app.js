@@ -5,6 +5,8 @@ const mongoose = require("mongoose");
 const libraryRoutes = require("./routes/library");
 const userRoutes = require("./routes/user");
 
+const path = require("path");
+
 mongoose
   .connect(
     "mongodb+srv://thomas_ruch:SAfiAjG08uf3CkaQ@cluster0.5a57r.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
@@ -29,6 +31,8 @@ app.use((req, res, next) => {
 });
 
 app.use(bodyParser.json());
+
+app.use("/images", express.static(path.join(__dirname, "images")));
 
 app.use("/api/books", libraryRoutes);
 app.use("/api/auth", userRoutes);
