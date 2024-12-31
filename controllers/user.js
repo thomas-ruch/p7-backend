@@ -7,7 +7,6 @@ exports.signup = (req, res, next) => {
   bcrypt
     .hash(req.body.password, 10)
     .then((hash) => {
-      console.log("Body request:", req.body);
       const user = new User({
         email: req.body.email,
         password: hash,
@@ -43,7 +42,7 @@ exports.login = (req, res, next) => {
             }),
           });
         })
-        .catch((error) => res.status(510).json({ error }));
+        .catch((error) => res.status(500).json({ error }));
     })
-    .catch((error) => res.status(520).json({ error }));
+    .catch((error) => res.status(500).json({ error }));
 };

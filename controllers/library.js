@@ -1,7 +1,6 @@
 const Book = require("../models/Book");
 const fs = require("fs");
 const average = require("../utils/average");
-const calcAverageRating = require("../utils/average");
 
 exports.createBook = (req, res, next) => {
   const bookObject = JSON.parse(req.body.book);
@@ -25,7 +24,6 @@ exports.createBook = (req, res, next) => {
 };
 
 exports.modifyBook = (req, res, next) => {
-  console.log("Entrée dans ModifyBook.");
   const bookObject = req.file
     ? {
         ...JSON.parse(req.body.book),
@@ -35,7 +33,6 @@ exports.modifyBook = (req, res, next) => {
       }
     : { ...req.body };
 
-  console.log("book : ", bookObject);
   delete bookObject._userId;
 
   Book.findOne({ _id: req.params.id })
@@ -47,12 +44,11 @@ exports.modifyBook = (req, res, next) => {
           { _id: req.params.id },
           { ...bookObject, _id: req.params.id }
         )
-
           .then(() => res.status(200).json({ message: "Objet modifié" }))
-          .catch((error) => res.status(401).json({ error }));
+          .catch((error) => res.status(400).json({ error }));
       }
     })
-    .catch((error) => res.status(402).json({ error }));
+    .catch((error) => res.status(400).json({ error }));
 };
 
 exports.deleteBook = (req, res, next) => {
@@ -65,7 +61,7 @@ exports.deleteBook = (req, res, next) => {
         fs.unlink(`images/${filename}`, () => {
           Book.deleteOne({ _id: req.params.id })
             .then(() => res.status(200).json({ message: "Objet supprimé" }))
-            .catch((error) => res.status(401).json({ error }));
+            .catch((error) => res.status(500).json({ error }));
         });
       }
     })
@@ -86,10 +82,6 @@ exports.getAllBooks = (req, res, next) => {
     .catch((error) => res.status(400).json({ error }));
 };
 
-exports.getBestRated = (req, res, next) => {
-  console.log("Fonction de renvoi des 3 meilleures notes");
-};
-
 exports.rateBook = (req, res, next) => {
   if (req.body.rating < 0 || req.body.rating > 5) {
     return res
@@ -99,8 +91,6 @@ exports.rateBook = (req, res, next) => {
 
   Book.findOne({ _id: req.params.id })
     .then((book) => {
-      console.log("Livre avant mise à jour : ", book);
-
       const newRatings = book.ratings.filter(
         (rating) => rating.userId !== req.body.userId
       );
@@ -108,7 +98,6 @@ exports.rateBook = (req, res, next) => {
 
       book.ratings = newRatings;
       book.averageRating = average(newRatings.map((rating) => rating.grade));
-      console.log("Livre après mise à jour : ", book);
 
       Book.updateOne(
         { _id: req.params.id },

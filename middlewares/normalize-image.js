@@ -3,19 +3,14 @@ const fs = require("fs");
 const path = require("path");
 
 module.exports = (req, res, next) => {
-  console.log("req.file : ", req.file);
   if (!req.file || !req.file.filename) {
     return next();
   }
 
   const filename = req.file.filename;
-
   const inputPath = path.join(__dirname, "../images", filename);
   const outputFilename = `${path.parse(filename).name}.webp`;
   const outputPath = path.join(__dirname, "../images", outputFilename);
-
-  console.log("inputPath :", inputPath);
-  console.log("outputPath :", outputPath);
 
   sharp(inputPath)
     .webp({ quality: 80 })
@@ -23,7 +18,7 @@ module.exports = (req, res, next) => {
     .then(() => {
       fs.unlink(inputPath, (error) => {
         if (error) {
-          return res.status(540).json({ error });
+          console.error("Erreur lors de la suppression du fichier : ", error);
         }
 
         // Mise à jour de req.file pour l'image normalisée
