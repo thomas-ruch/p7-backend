@@ -1,7 +1,7 @@
 const Book = require("../models/Book");
 const fs = require("fs");
-const sharp = require("sharp");
-const path = require("path");
+const average = require("../utils/average");
+const calcAverageRating = require("../utils/average");
 
 exports.createBook = (req, res, next) => {
   const bookObject = JSON.parse(req.body.book);
@@ -25,6 +25,7 @@ exports.createBook = (req, res, next) => {
 };
 
 exports.modifyBook = (req, res, next) => {
+  console.log("Entrée dans ModifyBook.");
   const bookObject = req.file
     ? {
         ...JSON.parse(req.body.book),
@@ -34,6 +35,7 @@ exports.modifyBook = (req, res, next) => {
       }
     : { ...req.body };
 
+  console.log("book : ", bookObject);
   delete bookObject._userId;
 
   Book.findOne({ _id: req.params.id })
@@ -46,11 +48,11 @@ exports.modifyBook = (req, res, next) => {
           { ...bookObject, _id: req.params.id }
         )
 
-          .then(() => res.status(200).json({ message: "Objet modifié !" }))
+          .then(() => res.status(200).json({ message: "Objet modifié" }))
           .catch((error) => res.status(401).json({ error }));
       }
     })
-    .catch((error) => res.status(400).json({ error }));
+    .catch((error) => res.status(402).json({ error }));
 };
 
 exports.deleteBook = (req, res, next) => {
@@ -62,7 +64,7 @@ exports.deleteBook = (req, res, next) => {
         const filename = book.imageUrl.split("/images/")[1];
         fs.unlink(`images/${filename}`, () => {
           Book.deleteOne({ _id: req.params.id })
-            .then(() => res.status(200).json({ message: "Objet supprimé !" }))
+            .then(() => res.status(200).json({ message: "Objet supprimé" }))
             .catch((error) => res.status(401).json({ error }));
         });
       }
@@ -84,23 +86,54 @@ exports.getAllBooks = (req, res, next) => {
     .catch((error) => res.status(400).json({ error }));
 };
 
+exports.getBestRated = (req, res, next) => {
+  console.log("Fonction de renvoi des 3 meilleures notes");
+};
+
 exports.rateBook = (req, res, next) => {
+  if (req.body.rating < 0 || req.body.rating > 5) {
+    return res
+      .status(400)
+      .json({ message: "La note doit être comprise entre 0 et 5." });
+  }
+
   Book.findOne({ _id: req.params.id })
     .then((book) => {
-      console.log("Livre trouvé : ", book);
+      console.log("Livre avant mise à jour : ", book);
+
       const newRatings = book.ratings.filter(
         (rating) => rating.userId !== req.body.userId
       );
       newRatings.push({ userId: req.body.userId, grade: req.body.rating });
 
       book.ratings = newRatings;
-      console.log("Livre modifié : ", book);
+      book.averageRating = average(newRatings.map((rating) => rating.grade));
+      console.log("Livre après mise à jour : ", book);
 
-      Book.updateOne({ _id: req.params.id }, { ratings: book.ratings })
+      Book.updateOne(
+        { _id: req.params.id },
+        {
+          ratings: book.ratings,
+          averageRating: book.averageRating,
+        }
+      )
         .then(() => res.status(200).json(book))
         .catch((error) => {
           res.status(500).json({ error });
         });
     })
     .catch((error) => res.status(404).json({ error }));
+};
+
+exports.getBestRated = (req, res, next) => {
+  Book.find()
+    .then((books) => {
+      const bestRated = books
+        .sort((a, b) => b.averageRating - a.averageRating)
+        .slice(0, 3);
+      res.status(200).json(bestRated);
+    })
+    .catch((error) => {
+      res.status(500).json({ error });
+    });
 };

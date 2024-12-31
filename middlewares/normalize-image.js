@@ -2,9 +2,10 @@ const sharp = require("sharp");
 const fs = require("fs");
 const path = require("path");
 
-module.exports = function normalizeImage(req, res, next) {
+module.exports = (req, res, next) => {
+  console.log("req.file : ", req.file);
   if (!req.file || !req.file.filename) {
-    return res.status(400).json({ error: "Aucun fichier fourni" });
+    return next();
   }
 
   const filename = req.file.filename;
@@ -22,7 +23,7 @@ module.exports = function normalizeImage(req, res, next) {
     .then(() => {
       fs.unlink(inputPath, (error) => {
         if (error) {
-          return res.status(500).json({});
+          return res.status(540).json({ error });
         }
 
         // Mise à jour de req.file pour l'image normalisée

@@ -14,7 +14,7 @@ exports.signup = (req, res, next) => {
       });
       user
         .save()
-        .then(() => res.status(201).json({ message: "Utilisateur créé !" }))
+        .then(() => res.status(201).json({ message: "Utilisateur créé" }))
         .catch((error) => res.status(400).json({ error }));
     })
     .catch((error) => res.status(500).json({ error }));
@@ -31,7 +31,6 @@ exports.login = (req, res, next) => {
       bcrypt
         .compare(req.body.password, user.password)
         .then((valid) => {
-          console.log("Validation :", valid);
           if (!valid) {
             return res
               .status(401)
