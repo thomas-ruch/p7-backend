@@ -1,3 +1,5 @@
+//Fonction de calcul de moyenne des valeurs d'un tableau
+
 module.exports = function average(array) {
   let sum = 0;
 

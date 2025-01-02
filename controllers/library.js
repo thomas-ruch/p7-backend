@@ -4,21 +4,25 @@ const average = require("../utils/average");
 
 exports.createBook = (req, res, next) => {
   const bookObject = JSON.parse(req.body.book);
-  delete bookObject._userId;
+
   delete bookObject._id;
 
-  const book = new Book({
-    ...bookObject,
-    userId: req.auth.userId,
-    imageUrl: `${req.protocol}://${req.get("host")}/images/${
-      req.file.filename
-    }`,
-  });
-
+  try {
+    const book = new Book({
+      ...bookObject,
+      userId: req.auth.userId,
+      imageUrl: `${req.protocol}://${req.get("host")}/images/${
+        req.file.filename
+      }`,
+    });
+  } catch {
+    (error) =>
+      res.status(500).json("Erreur lors de la création du livre : ", { error });
+  }
   book
     .save()
     .then(() => {
-      res.status(201).json({ message: "Livre enregistré !" });
+      res.status(201).json({ message: "Livre enregistré" });
     })
     .catch((error) => res.status(400).json({ error }));
 };
@@ -33,12 +37,10 @@ exports.modifyBook = (req, res, next) => {
       }
     : { ...req.body };
 
-  delete bookObject._userId;
-
   Book.findOne({ _id: req.params.id })
     .then((book) => {
       if (book.userId != req.auth.userId) {
-        res.status(401).json({ message: "Non autorisé" });
+        res.status(403).json({ message: "Requête non autorisée" });
       } else {
         Book.updateOne(
           { _id: req.params.id },
@@ -55,18 +57,18 @@ exports.deleteBook = (req, res, next) => {
   Book.findOne({ _id: req.params.id })
     .then((book) => {
       if (book.userId != req.auth.userId) {
-        res.status(401).json({ message: "Non autorisé" });
+        res.status(403).json({ message: "Requête non autorisée" });
       } else {
         const filename = book.imageUrl.split("/images/")[1];
         fs.unlink(`images/${filename}`, () => {
           Book.deleteOne({ _id: req.params.id })
             .then(() => res.status(200).json({ message: "Objet supprimé" }))
-            .catch((error) => res.status(500).json({ error }));
+            .catch((error) => res.status(400).json({ error }));
         });
       }
     })
     .catch((error) => {
-      res.status(500).json({ error });
+      res.status(400).json({ error });
     });
 };
 
@@ -79,7 +81,7 @@ exports.getOneBook = (req, res, next) => {
 exports.getAllBooks = (req, res, next) => {
   Book.find()
     .then((books) => res.status(200).json(books))
-    .catch((error) => res.status(400).json({ error }));
+    .catch((error) => res.status(404).json({ error }));
 };
 
 exports.rateBook = (req, res, next) => {
@@ -108,7 +110,7 @@ exports.rateBook = (req, res, next) => {
       )
         .then(() => res.status(200).json(book))
         .catch((error) => {
-          res.status(500).json({ error });
+          res.status(400).json({ error });
         });
     })
     .catch((error) => res.status(404).json({ error }));
@@ -123,6 +125,6 @@ exports.getBestRated = (req, res, next) => {
       res.status(200).json(bestRated);
     })
     .catch((error) => {
-      res.status(500).json({ error });
+      res.status(404).json({ error });
     });
 };
