@@ -7,18 +7,20 @@ exports.createBook = (req, res, next) => {
 
   delete bookObject._id;
 
-  try {
-    const book = new Book({
-      ...bookObject,
-      userId: req.auth.userId,
-      imageUrl: `${req.protocol}://${req.get("host")}/images/${
-        req.file.filename
-      }`,
-    });
-  } catch {
-    (error) =>
-      res.status(500).json("Erreur lors de la création du livre : ", { error });
-  }
+  bookObject.ratings = [];
+  bookObject.averageRating = 0;
+
+  console.log("bookObject :", bookObject);
+
+  const book = new Book({
+    ...bookObject,
+    imageUrl: `${req.protocol}://${req.get("host")}/images/${
+      req.file.filename
+    }`,
+  });
+
+  console.log("book :", book);
+
   book
     .save()
     .then(() => {

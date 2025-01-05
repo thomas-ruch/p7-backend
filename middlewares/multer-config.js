@@ -11,9 +11,21 @@ const storage = multer.diskStorage({
     callback(null, "images");
   },
   filename: (req, file, callback) => {
-    const name = file.originalname.split(" ").join("_");
     const extension = MIME_TYPES[file.mimetype];
-    callback(null, name + Date.now() + "." + extension);
+
+    let userId = "guest";
+    try {
+      if (req.body.book) {
+        const book = JSON.parse(req.body.book);
+        userId = book.userId ? book.userId.slice(0, 10) : "image";
+      }
+    } catch (error) {
+      console.error("Erreur lors du parsing de req.body.book :", error);
+    }
+    const timestamp = Date.now();
+    const filename = `${userId}_${timestamp}.${extension}`;
+
+    callback(null, filename);
   },
 });
 
