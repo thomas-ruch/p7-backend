@@ -1,32 +1,24 @@
 const multer = require("multer");
 
+// Définir les types MIME acceptés
 const MIME_TYPES = {
   "image/jpg": "jpg",
   "image/jpeg": "jpg",
   "image/png": "png",
 };
 
-const storage = multer.diskStorage({
-  destination: (req, file, callback) => {
-    callback(null, "images");
-  },
-  filename: (req, file, callback) => {
-    const extension = MIME_TYPES[file.mimetype];
+// Configurer Multer avec memoryStorage
+const storage = multer.memoryStorage();
 
-    let userId = "guest";
-    try {
-      if (req.body.book) {
-        const book = JSON.parse(req.body.book);
-        userId = book.userId ? book.userId.slice(0, 10) : "image";
-      }
-    } catch (error) {
-      console.error("Erreur lors du parsing de req.body.book :", error);
+module.exports = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // Limite de 5 Mo
+  fileFilter: (req, file, callback) => {
+    const isValid = MIME_TYPES[file.mimetype];
+    if (isValid) {
+      callback(null, true);
+    } else {
+      callback(new Error("Type de fichier non supporté"), false);
     }
-    const timestamp = Date.now();
-    const filename = `${userId}_${timestamp}.${extension}`;
-
-    callback(null, filename);
   },
-});
-
-module.exports = multer({ storage: storage }).single("image");
+}).single("image");
