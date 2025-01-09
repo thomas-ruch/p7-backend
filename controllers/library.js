@@ -7,19 +7,12 @@ exports.createBook = (req, res, next) => {
 
   delete bookObject._id;
 
-  bookObject.ratings = [];
-  bookObject.averageRating = 0;
-
-  console.log("bookObject :", bookObject);
-
   const book = new Book({
     ...bookObject,
     imageUrl: `${req.protocol}://${req.get("host")}/images/${
       req.file.filename
     }`,
   });
-
-  console.log("book :", book);
 
   book
     .save()

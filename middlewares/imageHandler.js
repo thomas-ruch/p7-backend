@@ -28,7 +28,7 @@ module.exports = (req, res, next) => {
       req.file.path = outputPath;
       next();
     })
-    .catch((error) => {
+    .catch(() => {
       res
         .status(500)
         .json({ error: "Erreur lors de la normalisation de l'image" });
