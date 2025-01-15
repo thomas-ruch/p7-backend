@@ -7,5 +7,5 @@ module.exports = function average(array) {
     sum += num;
   });
 
-  return sum / array.length;
+  return (sum / array.length).toFixed(1);
 };

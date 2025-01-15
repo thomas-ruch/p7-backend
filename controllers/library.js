@@ -7,8 +7,6 @@ exports.createBook = (req, res, next) => {
 
   delete bookObject._id;
 
-  console.log("BookObject : ", bookObject);
-
   if (
     bookObject.ratings.some(
       (element) => element.userId === bookObject.userId && element.grade === 0
